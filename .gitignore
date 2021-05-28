@@ -1,2 +1,5 @@
 **/.ipynb_checkpoints/**
 **/__pycache__/**
+**/input/**
+**/outputs/**
+vanilla_gan.py
