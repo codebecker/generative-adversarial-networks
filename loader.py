@@ -1,7 +1,10 @@
 import torchvision.datasets as datasets
+from torchvision.datasets import ImageFolder
+import os
+
 class loader():
     def __init__(self, type, transformation) -> None:
-        self.dir = "./input/data/"
+        self.dir = "./data/"
         self.train = True
         self.download = True
         self.__dataset = self.__getDataset(type, transformation)
@@ -22,9 +25,16 @@ class loader():
                     download=self.download,
                     transform=transformation
                     )
-
-        if type == "cifar":
+        
+        if type == "cifar10":
             return datasets.CIFAR10(
+                    root=self.dir,
+                    train=self.train,
+                    download=self.download,
+                    transform=transformation
+                    )
+        if type == "cifar100":
+            return datasets.CIFAR100(
                     root=self.dir,
                     train=self.train,
                     download=self.download,
@@ -36,3 +46,4 @@ class loader():
 
     def getDataset(self):
         return self.__dataset
+    
