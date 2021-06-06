@@ -5,10 +5,10 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 import torch.optim as optim
-import torchvision.datasets as datasets
 import imageio
 import numpy as np
 import matplotlib
+import mlflow
 from torchvision.utils import make_grid, save_image
 from torch.utils.data import DataLoader
 from matplotlib import pyplot as plt
@@ -19,15 +19,32 @@ from loader import loader
 matplotlib.style.use('ggplot')
 
 # specify dataset name
-ds_name = "cifar10"
+ds_name = "mnist"
 
 # learning parameters
 batch_size = 32
-epochs = 4
+epochs = 2
 sample_size = 64 # fixed sample size
 nz = 16 # latent vector size
 k = 1 # number of steps to apply to the discriminator
+model_save_interval = 50
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+mlflow.set_experiment(ds_name)
+mlflow.end_run()
+mlflow.start_run()
+mlflow_experiment_id = mlflow.get_experiment_by_name(ds_name).experiment_id
+mlflow_run_id = mlflow.active_run().info.run_id
+log_path = "mlruns/"+str(mlflow_experiment_id)+"/"+str(mlflow_run_id)+"/"+"artifacts"+"/"
+mlflow.log_param("run_id", mlflow_run_id)
+mlflow.log_param("batch_size", batch_size)
+mlflow.log_param("epochs", epochs)
+mlflow.log_param("sample_size", sample_size)
+mlflow.log_param("nz", nz)
+mlflow.log_param("k", k)
+mlflow.log_param("device", device)
+mlflow.log_param("model_save_interval", model_save_interval)
+print("mlflow logpath:"+log_path)
 
 transform =  transform_factory.transform_factory(ds_name).get_compose()
 
@@ -148,26 +165,35 @@ for epoch in range(epochs):
     # make the images as grid
     generated_img = make_grid(generated_img)
     # save the generated torch tensor models to disk
-    save_generator_image(generated_img, f"outputs/gen_img{epoch}.png")
+    #save_generator_image(generated_img, f"outputs/gen_img{epoch}.png")
+    save_generator_image(generated_img, log_path+"gen_img"+str(epoch)+".png")
     images.append(generated_img)
     epoch_loss_g = loss_g / bi # total generator loss for the epoch
     epoch_loss_d = loss_d / bi # total discriminator loss for the epoch
     losses_g.append(epoch_loss_g.cpu().detach().numpy())
     losses_d.append(epoch_loss_d.cpu().detach().numpy())
     
+    
+    mlflow.log_metric("loss_generator", losses_g[-1].item())
+    mlflow.log_metric("loss_discriminator", losses_d[-1].item())  
+    if epoch % model_save_interval == 0: #each model is 60mb in size
+        torch.save(generator.state_dict(), log_path+"generator"+str(epoch)+".pth")
+        torch.save(discriminator.state_dict(), log_path+"discriminator"+str(epoch)+".pth")
+    
     print(f"Epoch {epoch} of {epochs}")
-    print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}")
+    print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss {epoch_loss_d:.8f}")
 
 print('DONE TRAINING')
 torch.save(generator.state_dict(), 'outputs/generator.pth')
 
 # save the generated images as GIF file
 imgs = [np.array(to_pil_image(img)) for img in images]
-imageio.mimsave('outputs/generator_images.gif', imgs)
-
+#imageio.mimsave('outputs/generator_images.gif', imgs)
+imageio.mimsave(log_path+'generator_images.gif', imgs)
 # plot and save the generator and discriminator loss
 plt.figure()
 plt.plot(losses_g , label='Generator loss')
 plt.plot(losses_d , label='Discriminator Loss')
 plt.legend()
-plt.savefig('outputs/loss.png')
+#plt.savefig('outputs/loss.png')
+plt.savefig(log_path+'loss.png')
