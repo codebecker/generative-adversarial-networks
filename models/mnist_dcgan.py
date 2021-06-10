@@ -54,7 +54,7 @@ class Generator(nn.Module):
                 bias=False)
         self.tanh = nn.Tanh()
 
-    def forward(self, input_tensor):
+    def forward(self, input_tensor, embedding=None):
         """Forward pass; map latent vectors to samples."""
         intermediate = self.linear1(input_tensor)
         intermediate = self.bn1d1(intermediate)
@@ -109,7 +109,7 @@ class Discriminator(nn.Module):
         self.linear1 = nn.Linear(128*7*7, 1, bias=True)
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, input_tensor):
+    def forward(self, input_tensor, embedding=None):
         """Forward pass; map samples to confidence they are real [0, 1]."""
         intermediate = self.conv1(input_tensor)
         intermediate = self.leaky_relu(intermediate)
