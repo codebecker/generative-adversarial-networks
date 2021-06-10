@@ -5,3 +5,5 @@
 **/data/**
 *.pth
 vanilla_gan.py
+cc.en.300.bin
+**/.vscode/**

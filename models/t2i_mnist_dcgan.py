@@ -18,11 +18,21 @@ class Generator(nn.Module):
         self.factor = 7
         self.nz = nz          #latentdimension   
         self.nz_dim = 256   
+        self.embedding_dim = embedding_dim
+        self.projected_embedded_dim = 128
         self.batchnorm = batchnorm
+        self.latent_dim = self.nz_dim + self.projected_embedded_dim
         self._init_modules()
 
     def _init_modules(self):
         """Initialize the modules."""
+
+        #projection of embedding to lower dimensional space
+        self.linear0 = nn.Linear(self.embedding_dim, self.projected_embedded_dim*self.factor*self.factor)
+        self.bn0d0 = nn.BatchNorm1d(num_features=self.projected_embedded_dim*self.factor*self.factor) if self.batchnorm else None
+        self.leaky_relu0 = nn.LeakyReLU()
+
+
         # Project the input
         self.linear1 = nn.Linear(self.nz, self.nz_dim*self.factor*self.factor, bias=False)
         self.bn1d1 = nn.BatchNorm1d(self.nz_dim*self.factor*self.factor) if self.batchnorm else None
@@ -30,7 +40,7 @@ class Generator(nn.Module):
 
         # Convolutions
         self.conv1 = nn.Conv2d(
-                in_channels=256,
+                in_channels=self.latent_dim,
                 out_channels=128,
                 kernel_size=5,
                 stride=1,
@@ -56,15 +66,23 @@ class Generator(nn.Module):
                 bias=False)
         self.tanh = nn.Tanh()
 
-    def forward(self, input_tensor):
+    def forward(self, noise, embed_vector):
+        """ Project embedding to lower dimension"""
+        projection = self.linear0(embed_vector)
+        projection = self.bn0d0(projection)
+        projection = self.leaky_relu0(projection)
+        projection = projection.view((-1, self.projected_embedded_dim, self.factor, self.factor))
+
         """Forward pass; map latent vectors to samples."""
-        intermediate = self.linear1(input_tensor)
+        intermediate = self.linear1(noise)
         intermediate = self.bn1d1(intermediate)
         intermediate = self.leaky_relu(intermediate)
-
         intermediate = intermediate.view((-1, self.nz_dim, self.factor, self.factor))
 
-        intermediate = self.conv1(intermediate)
+        #concat both inputs
+        concat = torch.cat([intermediate, projection], 1)
+
+        intermediate = self.conv1(concat)
         if self.batchnorm:
             intermediate = self.bn2d1(intermediate)
         intermediate = self.leaky_relu(intermediate)
@@ -87,10 +105,18 @@ class Discriminator(nn.Module):
         """
         super(Discriminator, self).__init__()
         self.factor = 7
+        self.nz_dim = 256
+        self.embedding_dim = embedding_dim #Fasttext uses 300  
+        self.projected_embedding_dim = 128 #propsed in paper.
+        self.latent_dim = 6400
         self._init_modules()
 
     def _init_modules(self):
         """Initialize the modules."""
+        self.projection_linear = nn.Linear(in_features=self.embedding_dim, out_features=self.projected_embedding_dim)
+        self.projection_bn = nn.BatchNorm1d(num_features=self.projected_embedding_dim)
+        self.projection_leaky_relu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
+
         self.conv1 = nn.Conv2d(
                 in_channels=1,
                 out_channels=64,
@@ -109,21 +135,34 @@ class Discriminator(nn.Module):
                 padding=2,
                 bias=True)
 
-        self.linear1 = nn.Linear(128*self.factor*self.factor, 1, bias=True)
+        self.linear1 = nn.Linear(self.latent_dim, 1, bias=True)
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, input_tensor):
+    def forward(self, image, embed_vector):
+        #step 1: reduce dim of embedding
+        projection = self.projection_linear(embed_vector)
+        projection = self.projection_bn(projection)
+        projection = self.projection_leaky_relu(projection)
+        print(projection.shape)
+
+        #step 2: pass to CNN
         """Forward pass; map samples to confidence they are real [0, 1]."""
-        intermediate = self.conv1(input_tensor)
+        intermediate = self.conv1(image)
         intermediate = self.leaky_relu(intermediate)
         intermediate = self.dropout_2d(intermediate)
-
+      
         intermediate = self.conv2(intermediate)
         intermediate = self.leaky_relu(intermediate)
         intermediate = self.dropout_2d(intermediate)
-
         intermediate = intermediate.view((-1, 128*self.factor*self.factor))
-        intermediate = self.linear1(intermediate)
+        print(intermediate.shape)
+
+        #step 3 concatenate depthwise with intermediate 
+        concat = torch.cat([intermediate, projection], 1)
+        print(concat.shape)
+
+        #step 4 final layer
+        intermediate = self.linear1(concat)
         output_tensor = self.sigmoid(intermediate)
 
         return output_tensor
