@@ -143,7 +143,6 @@ class Discriminator(nn.Module):
         projection = self.projection_linear(embed_vector)
         projection = self.projection_bn(projection)
         projection = self.projection_leaky_relu(projection)
-        print(projection.shape)
 
         #step 2: pass to CNN
         """Forward pass; map samples to confidence they are real [0, 1]."""
@@ -155,11 +154,9 @@ class Discriminator(nn.Module):
         intermediate = self.leaky_relu(intermediate)
         intermediate = self.dropout_2d(intermediate)
         intermediate = intermediate.view((-1, 128*self.factor*self.factor))
-        print(intermediate.shape)
 
         #step 3 concatenate depthwise with intermediate 
         concat = torch.cat([intermediate, projection], 1)
-        print(concat.shape)
 
         #step 4 final layer
         intermediate = self.linear1(concat)
