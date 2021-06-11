@@ -108,7 +108,7 @@ class Discriminator(nn.Module):
         self.nz_dim = 256
         self.embedding_dim = embedding_dim #Fasttext uses 300  
         self.projected_embedding_dim = 128 #propsed in paper.
-        self.latent_dim = 6400
+        self.latent_dim = self.projected_embedding_dim * self.factor * self.factor *2
         self._init_modules()
 
     def _init_modules(self):
@@ -135,7 +135,12 @@ class Discriminator(nn.Module):
                 padding=2,
                 bias=True)
 
-        self.linear1 = nn.Linear(self.latent_dim, 1, bias=True)
+        self.linear1 = nn.Linear(in_features=self.latent_dim, out_features=1024, bias=True)
+        self.leaky_relu1 = nn.LeakyReLU()
+        self.linear2 = nn.Linear(in_features=1024, out_features=512, bias=True)
+        self.leaky_relu2 = nn.LeakyReLU()
+        self.linear3 = nn.Linear(in_features=512, out_features=1, bias=True)
+
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, image, embed_vector):
@@ -144,12 +149,15 @@ class Discriminator(nn.Module):
         projection = self.projection_bn(projection)
         projection = self.projection_leaky_relu(projection)
 
+        projection = projection.repeat(1,1, self.factor,self.factor)
+        projection = projection.view((-1, 128*self.factor*self.factor))
+
         #step 2: pass to CNN
         """Forward pass; map samples to confidence they are real [0, 1]."""
         intermediate = self.conv1(image)
         intermediate = self.leaky_relu(intermediate)
         intermediate = self.dropout_2d(intermediate)
-      
+
         intermediate = self.conv2(intermediate)
         intermediate = self.leaky_relu(intermediate)
         intermediate = self.dropout_2d(intermediate)
@@ -159,7 +167,11 @@ class Discriminator(nn.Module):
         concat = torch.cat([intermediate, projection], 1)
 
         #step 4 final layer
-        intermediate = self.linear1(concat)
-        output_tensor = self.sigmoid(intermediate)
+        final = self.linear1(concat)
+        final = self.leaky_relu1(final)
+        final = self.linear2(final)
+        final = self.leaky_relu2(final)
+        final = self.linear3(final)
+        output_tensor = self.sigmoid(final)
 
         return output_tensor
