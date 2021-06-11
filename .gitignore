@@ -2,9 +2,11 @@
 **/__pycache__/**
 **/input/**
 **/outputs/**
-**/data/**
-!/data/annotations.json
 *.pth
 vanilla_gan.py
 cc.en.300.bin
 **/.vscode/**
+data/*
+data/coco/annotations/*
+data/coco/images/*
+!data/coco/
