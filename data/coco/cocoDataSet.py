@@ -68,7 +68,7 @@ class cocoDataSet(Dataset):
         annIds = self.coco_caps.getAnnIds(imgIds=img['id'])
         anns = self.coco_caps.loadAnns(annIds)
         #get random
-        label = anns[np.random.choice(5, 1)[0]]
+        label = anns[np.random.choice(5, 1)[0]]['caption']
 
         if self.__t2i:
             #TODO embedding
