@@ -9,7 +9,7 @@ class model_factory(object):
                 return t2i_mnist_dcgan.Generator(embedding_dim, nz)
             else:
                 return mnist_dcgan.Generator(nz)
-        if type == 'cifar10':
+        if type == 'cifar10' or type == 'coco':
             if textToImage:
                 return t2i_cifar_dcgan.Generator(embedding_dim, nz)
             else:
@@ -25,7 +25,7 @@ class model_factory(object):
                 return t2i_mnist_dcgan.Discriminator(embedding_dim)
             else:
                 return mnist_dcgan.Discriminator()
-        if type == 'cifar10':
+        if type == 'cifar10' or type == 'coco':
             if textToImage:
                 return t2i_cifar_dcgan.Discriminator(embedding_dim)
             else:
