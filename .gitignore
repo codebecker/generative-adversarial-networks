@@ -3,6 +3,7 @@
 **/input/**
 **/outputs/**
 **/data/**
+!/data/annotations.json
 *.pth
 vanilla_gan.py
 cc.en.300.bin

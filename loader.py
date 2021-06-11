@@ -40,6 +40,14 @@ class loader():
                     download=self.download,
                     transform=transformation
                     )
+        if type == "coco":
+            return datasets.CocoCaptions(
+                    root=self.dir,
+                    transform=transformation,
+                    train=self.train,
+                    download=self.download,
+                    annFile="./data/annotations.json"
+                    )
         else:
             print("unknown dataset")
             exit()
