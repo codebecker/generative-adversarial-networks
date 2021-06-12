@@ -10,3 +10,4 @@ data/*
 data/coco/annotations/*
 data/coco/images/*
 !data/coco/
+/**embeddings/transformers/**.pickle

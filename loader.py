@@ -7,7 +7,6 @@ class loader():
         self.train = True
         self.download = True
         if args:
-            print("dafjkdjf")
             self.opts = args
         self.__dataset = self.__getDataset(type, transformation)
 

@@ -3,9 +3,12 @@ from pycocotools.coco import COCO
 from torch.utils.data.dataset import Dataset
 import numpy as np
 import skimage.io as io
+from embeddings.embeddingsLoaderFactory import embeddingsLoaderFactory
+import pickle
+
 
 class cocoDataSet(Dataset):
-    def __init__(self, transform, t2i=False, categories=['cat'], size=32):
+    def __init__(self, transform, t2i=False, categories=['cat'], size=32, embedding_type = 'distilbert-base-uncased'):
         self.__data_dir ='./data/coco/'
         self.__dataset_name = 'val2017'
         self.transform = transform
@@ -13,10 +16,16 @@ class cocoDataSet(Dataset):
         self.__ids = []
         self.__ds_size = size
         self.__t2i = t2i
+        self.__embed_dim = None
+        self.__embedding_type = embedding_type
+        if self.__t2i:
+            self.__embedding_model = embeddingsLoaderFactory.embeddingLoader(type=self.__embedding_type)
+            self.__embed_dim = self.__embedding_model.getSize()
 
         self.__getIDsFromCategory()
         if self.__ids:
-            self.data, self.labels, self.imgs = self.__loadImages()
+            self.__imgs, self.__emb_dict = self.__loadImages()
+            self.writeToFile(self.__emb_dict)
 
     def __getIDsFromCategory(self):
         annFile_categories='{}annotations/instances_{}.json'.format(self.__data_dir, self.__dataset_name)
@@ -35,15 +44,13 @@ class cocoDataSet(Dataset):
             self.__ids = imgIds
 
     def __loadImages(self):
-        data = []
-        all_captions = []
         imgs = []
-        for idx in self.__ids:
-            img = self.coco_categories.loadImgs(idx)[0]
+        emb_dict = dict()
+        for idx, image_ids in enumerate(self.__ids):
+            img = self.coco_categories.loadImgs(image_ids)[0]
             imgs.append(img)
             # use url to load image
             I = io.imread(img['coco_url']) # shape of np array (480, 640, 3)
-            data.append(I)
 
             # load and display caption annotations
             annIds = self.coco_caps.getAnnIds(imgIds=img['id'])
@@ -51,26 +58,47 @@ class cocoDataSet(Dataset):
             captions = []
             for entries in anns:
                 captions.append((entries['caption']))
-            all_captions.append(captions)
-        data = np.array(data, dtype=object)
-        return data, all_captions, imgs
+            single_emb_dict = self.__getEmbeddings(captions)
+            emb_dict[idx] = single_emb_dict
+
+        return imgs, emb_dict
+
+    def __getEmbeddings(self, captions):
+        emb_dict = dict()
+        for idx, caption in enumerate(captions):
+            embedding = self.__embedding_model.getEmbedding(caption).detach().numpy()
+            emb_dict[idx] = embedding
+        return emb_dict
+
 
     def __len__(self):
         return self.__ds_size
 
     def __getitem__(self, idx):
         #load image
-        img = self.imgs[idx]
+        img = self.__imgs[idx]
         image = io.imread(img['coco_url'])
         image = self.transform(image)
 
-        #load labels
-        annIds = self.coco_caps.getAnnIds(imgIds=img['id'])
-        anns = self.coco_caps.loadAnns(annIds)
-        #get random
-        label = anns[np.random.choice(5, 1)[0]]['caption']
+        #get random caption
+        #annIds = self.coco_caps.getAnnIds(imgIds=img['id'])
+        # anns = self.coco_caps.loadAnns(annIds)
+        #label = anns[np.random.choice(5, 1)[0]]['caption']
 
-        if self.__t2i:
-            #TODO embedding
-            pass
-        return image, label
+        #return just the number of the label
+        label = np.random.choice(5, 1)[0]
+        return image, idx, label
+
+
+    def getEmbeddingDim(self) -> int:
+        return self.__embed_dim
+
+    def writeToFile(self, dictionary):
+        path_dir = './embeddings/'
+        if self.__embedding_type == 'fasttext':
+            path_dir += 'fasttext/'
+        else:
+            path_dir += 'transformers/' + 'coco_'+ self.__embedding_type
+
+        with open(path_dir + '_embeddings.pickle', 'wb') as handle:
+            pickle.dump(dictionary, handle, protocol=pickle.HIGHEST_PROTOCOL)
