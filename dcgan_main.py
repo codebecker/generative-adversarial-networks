@@ -184,8 +184,8 @@ for epoch in range(epochs):
     print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss {epoch_loss_d:.8f}")
 
 print('DONE TRAINING')
-torch.save(generator.state_dict(), log_path+"generator"+str(epoch)+".pth")
-torch.save(discriminator.state_dict(), log_path+"discriminator"+str(epoch)+".pth")
+torch.save(generator.state_dict(), log_path+"generator"+str(epochs)+".pth")
+torch.save(discriminator.state_dict(), log_path+"discriminator"+str(epochs)+".pth")
 
 # save the generated images as GIF file
 imgs = [np.array(to_pil_image(img)) for img in images]
