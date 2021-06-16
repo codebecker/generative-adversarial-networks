@@ -1,4 +1,4 @@
-from transformations import mnist_transformation, cifar_transformation, fmnist_transformation
+from transformations import mnist_transformation, cifar_transformation, fmnist_transformation, coco_transformation
 
 class transform_factory(object):
 
@@ -12,3 +12,5 @@ class transform_factory(object):
             return cifar_transformation.Transformation()
         if type == 'cifar100':
             return cifar_transformation.Transformation()
+        if type == 'coco':
+            return coco_transformation.Transformation()

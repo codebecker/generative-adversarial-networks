@@ -29,6 +29,8 @@ cryptography @ file:///C:/ci/cryptography_1616769504165/work
 cycler==0.10.0
 cymem @ file:///D:/bld/cymem_1607336392825/work
 Cython @ file:///C:/ci/cython_1618435342791/work
+cytoolz==0.11.0
+dask @ file:///tmp/build/80754af9/dask-core_1602083700509/work
 databricks-cli==0.14.3
 decorator @ file:///home/conda/feedstock_root/build_artifacts/decorator_1621187651333/work
 defusedxml @ file:///home/conda/feedstock_root/build_artifacts/defusedxml_1615232257335/work
@@ -54,6 +56,7 @@ greenlet==1.1.0
 grpcio @ file:///D:/bld/grpcio_1621566057895/work
 gym @ file:///D:/bld/gym_1619814989092/work
 idna @ file:///tmp/build/80754af9/idna_1593446292537/work
+imagecodecs @ file:///C:/ci/imagecodecs_1617996768930/work
 imageio @ file:///home/conda/feedstock_root/build_artifacts/imageio_1594044661732/work
 importlib-metadata @ file:///D:/bld/importlib-metadata_1622775679459/work
 ipykernel @ file:///D:/bld/ipykernel_1620913104713/work/dist/ipykernel-5.5.5-py3-none-any.whl
@@ -74,11 +77,11 @@ jupyterlab==3.0.11
 jupyterlab-pygments @ file:///home/conda/feedstock_root/build_artifacts/jupyterlab_pygments_1601375948261/work
 jupyterlab-server==2.3.0
 jupyterlab-widgets @ file:///home/conda/feedstock_root/build_artifacts/jupyterlab_widgets_1609173350931/work
-kiwisolver==1.3.1
+kiwisolver @ file:///C:/ci/kiwisolver_1612282555033/work
 Mako==1.1.4
 Markdown==3.3.4
 MarkupSafe @ file:///D:/bld/markupsafe_1621455953770/work
-matplotlib==3.3.4
+matplotlib @ file:///C:/ci/matplotlib-suite_1613408055530/work
 matplotlib-inline @ file:///home/conda/feedstock_root/build_artifacts/matplotlib-inline_1618935594181/work
 mistune @ file:///D:/bld/mistune_1610113097974/work
 mlflow==1.17.0
@@ -89,6 +92,7 @@ nbclient @ file:///home/conda/feedstock_root/build_artifacts/nbclient_1614336084
 nbconvert @ file:///D:/bld/nbconvert_1605402074138/work
 nbformat @ file:///home/conda/feedstock_root/build_artifacts/nbformat_1617383142101/work
 nest-asyncio @ file:///home/conda/feedstock_root/build_artifacts/nest-asyncio_1617163391303/work
+networkx @ file:///tmp/build/80754af9/networkx_1598376031484/work
 notebook @ file:///home/conda/feedstock_root/build_artifacts/notebook_1621259862661/work
 numpy @ file:///D:/bld/numpy_1616933442622/work
 oauthlib==3.1.0
@@ -108,6 +112,7 @@ protobuf==3.17.2
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pybind11==2.6.2
+pycocotools==2.0.2
 pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
 pydantic @ file:///D:/bld/pydantic_1614365296897/work
 pyglet @ file:///D:/bld/pyglet_1618311623508/work
@@ -119,6 +124,7 @@ PySocks @ file:///C:/ci/pysocks_1605307512533/work
 python-dateutil==2.8.1
 python-editor==1.0.4
 pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1612179539967/work
+PyWavelets @ file:///C:/ci/pywavelets_1607645631519/work
 pywin32==228
 pywinpty @ file:///C:/ci/pywinpty_1607419945780/work
 PyYAML==5.4.1
@@ -128,6 +134,7 @@ requests==2.25.1
 requests-oauthlib==1.3.0
 rsa @ file:///home/conda/feedstock_root/build_artifacts/rsa_1614171254180/work
 s3transfer @ file:///tmp/build/80754af9/s3transfer_1616183147336/work
+scikit-image==0.18.1
 scipy @ file:///C:/bld/scipy_1619562066759/work
 Send2Trash==1.5.0
 shellingham @ file:///home/conda/feedstock_root/build_artifacts/shellingham_1612179560728/work
@@ -146,6 +153,8 @@ tensorboard-plugin-wit==1.8.0
 terminado==0.9.4
 testpath @ file:///home/conda/feedstock_root/build_artifacts/testpath_1621261527237/work
 thinc @ file:///D:/bld/thinc_1619212183813/work
+tifffile @ file:///tmp/build/80754af9/tifffile_1603273710380/work
+toolz @ file:///tmp/build/80754af9/toolz_1601054250827/work
 torch==1.7.1+cu101
 torchaudio==0.7.2
 torchvision==0.8.2+cu101

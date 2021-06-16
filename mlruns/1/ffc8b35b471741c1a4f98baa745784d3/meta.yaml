@@ -1,0 +1,15 @@
+artifact_uri: file:///A:/Projects/KI_Lab/generative-adversarial-networks/mlruns/1/ffc8b35b471741c1a4f98baa745784d3/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: ffc8b35b471741c1a4f98baa745784d3
+run_uuid: ffc8b35b471741c1a4f98baa745784d3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1623413873579
+status: 1
+tags: []
+user_id: piass
