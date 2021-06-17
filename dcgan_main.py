@@ -62,7 +62,8 @@ class dcgan():
         mlflow_run_id = mlflow.active_run().info.run_id
         log_path = "mlruns/" + str(mlflow_experiment_id) + "/" + str(mlflow_run_id) + "/" + "artifacts" + "/"
         mlflow.log_param("run_id", mlflow_run_id)
-        mlflow.log_param("batch_size", self.lr)
+        mlflow.log_param("lr_discriminator", self.lr_discriminator)
+        mlflow.log_param("lr_generator", self.lr_generator)
         mlflow.log_param("batch_size", self.batch_size)
         mlflow.log_param("epochs", self.epochs)
         mlflow.log_param("sample_size", self.sample_size)
