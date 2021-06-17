@@ -1,202 +1,232 @@
-# -*- coding: utf-8 -*-
-
-# %%writefile vanilla_gan.py
-import torch
-import torch.nn as nn
-import torchvision.transforms as transforms
-import torch.optim as optim
 import imageio
-import numpy as np
 import matplotlib
 import mlflow
-from torchvision.utils import make_grid, save_image
-from torch.utils.data import DataLoader
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torchvision.transforms as transforms
 from matplotlib import pyplot as plt
+from torch.utils.data import DataLoader
+from torchvision.utils import make_grid, save_image
 from tqdm import tqdm
+
+from loader import loader
 from models.model_factory import model_factory
 from transformations.transform_factory import transform_factory
-from loader import loader
+
 matplotlib.style.use('ggplot')
 
-# specify dataset name
-ds_name = "fmnist"
 
-# learning parameters
-batch_size = 32
-epochs = 2
-sample_size = 64 # fixed sample size
-nz = 16 # latent vector size
-k = 1 # number of steps to apply to the discriminator
-model_save_interval = 50
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+class dcgan:
+    def __init(self,
+               ds_name="fmnist",
+               lr_generator=0.0002,
+               lr_discriminator=0.0002,
+               batch_size=32,
+               epochs=100,
+               sample_size=64,
+               nz=16,
+               k=1,
+               model_save_interval=50
+               ):
+        self.lr_generator = lr_generator
+        self.lr_discriminator = lr_discriminator
+        self.ds_name = ds_name
+        self.batch_size = batch_size
+        self.epochs = epochs
+        self.sample_size = sample_size  # fixed sample size
+        self.nz = nz  # latent vector size
+        self.k = k  # number of steps to apply to the discriminator
+        self.model_save_interval = model_save_interval
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-mlflow.set_experiment(ds_name)
-mlflow.end_run()
-mlflow.start_run()
-mlflow_experiment_id = mlflow.get_experiment_by_name(ds_name).experiment_id
-mlflow_run_id = mlflow.active_run().info.run_id
-log_path = "mlruns/"+str(mlflow_experiment_id)+"/"+str(mlflow_run_id)+"/"+"artifacts"+"/"
-mlflow.log_param("run_id", mlflow_run_id)
-mlflow.log_param("batch_size", batch_size)
-mlflow.log_param("epochs", epochs)
-mlflow.log_param("sample_size", sample_size)
-mlflow.log_param("nz", nz)
-mlflow.log_param("k", k)
-mlflow.log_param("device", device)
-mlflow.log_param("model_save_interval", model_save_interval)
-mlflow.log_param("dataset name", ds_name)
+    def train(self):
+        # specify dataset name
+        # ds_name = "fmnist"
 
-print("mlflow logpath:"+log_path)
+        # learning parameters
+        # lr = 0.0002
+        # batch_size = 32
+        # epochs = 2
+        # sample_size = 64 # fixed sample size
+        # nz = 16 # latent vector size
+        # k = 1 # number of steps to apply to the discriminator
+        # model_save_interval = 50
+        # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-transform =  transform_factory.transform_factory(ds_name).get_compose()
+        mlflow.set_experiment(self.ds_name)
+        mlflow.end_run()
+        mlflow.start_run()
+        mlflow_experiment_id = mlflow.get_experiment_by_name(self.ds_name).experiment_id
+        mlflow_run_id = mlflow.active_run().info.run_id
+        log_path = "mlruns/" + str(mlflow_experiment_id) + "/" + str(mlflow_run_id) + "/" + "artifacts" + "/"
+        mlflow.log_param("run_id", mlflow_run_id)
+        mlflow.log_param("batch_size", self.lr)
+        mlflow.log_param("batch_size", self.batch_size)
+        mlflow.log_param("epochs", self.epochs)
+        mlflow.log_param("sample_size", self.sample_size)
+        mlflow.log_param("nz", self.nz)
+        mlflow.log_param("k", self.k)
+        mlflow.log_param("device", self.device)
+        mlflow.log_param("model_save_interval", self.model_save_interval)
+        mlflow.log_param("dataset name", self.ds_name)
 
-# transform = transforms.Compose([
-#             transforms.Grayscale(num_output_channels=1),
-#             transforms.ToTensor(),
-#             transforms.Normalize((0.5,), (0.5,))
-#             ])
+        print("mlflow logpath:" + log_path)
 
-#transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        transform = transform_factory.transform_factory(self.ds_name).get_compose()
 
-to_pil_image = transforms.ToPILImage()
+        # transform = transforms.Compose([
+        #             transforms.Grayscale(num_output_channels=1),
+        #             transforms.ToTensor(),
+        #             transforms.Normalize((0.5,), (0.5,))
+        #             ])
 
-train_data = loader(ds_name, transform).getDataset()
-train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+        # transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-generator = model_factory.generator_factory(ds_name, nz).to(device)
-discriminator = model_factory.discriminator_factory(ds_name).to(device)
+        to_pil_image = transforms.ToPILImage()
 
-print('##### GENERATOR #####')
-print(generator)
-print('######################')
+        train_data = loader(self.ds_name, transform).getDataset()
+        train_loader = DataLoader(train_data, batch_size=self.batch_size, shuffle=True)
 
-print('\n##### DISCRIMINATOR #####')
-print(discriminator)
-print('######################')
+        generator = model_factory.generator_factory(self.ds_name, self.nz).to(self.device)
+        discriminator = model_factory.discriminator_factory(self.ds_name).to(self.device)
 
-# optimizers
-optim_g = optim.Adam(generator.parameters(), lr=0.0002)
-optim_d = optim.Adam(discriminator.parameters(), lr=0.0002)
+        print('##### GENERATOR #####')
+        print(generator)
+        print('######################')
 
-# loss function
-criterion = nn.BCELoss() #binary cross entropy
+        print('\n##### DISCRIMINATOR #####')
+        print(discriminator)
+        print('######################')
 
-losses_g = [] # to store generator loss after each epoch
-losses_d = [] # to store discriminator loss after each epoch
-images = [] # to store images generatd by the generator
+        # optimizers
+        optim_g = optim.Adam(generator.parameters(), lr=self.lr_generator)
+        optim_d = optim.Adam(discriminator.parameters(), lr=self.lr_discriminator)
 
-# to create real labels (1s)
-def label_real(size):
-    data = torch.ones(size, 1)
-    return data.to(device)
+        # loss function
+        criterion = nn.BCELoss()  # binary cross entropy
 
-# to create fake labels (0s)
-def label_fake(size):
-    data = torch.zeros(size, 1)
-    return data.to(device)
+        losses_g = []  # to store generator loss after each epoch
+        losses_d = []  # to store discriminator loss after each epoch
+        images = []  # to store images generatd by the generator
 
-# function to create the noise vector
-def create_noise(sample_size, nz):
-    return torch.randn(sample_size, nz).to(device)
+        # to create real labels (1s)
+        def label_real(size):
+            data = torch.ones(size, 1)
+            return data.to(self.device)
 
-# to save the images generated by the generator
-def save_generator_image(image, path):
-    save_image(image, path)
+        # to create fake labels (0s)
+        def label_fake(size):
+            data = torch.zeros(size, 1)
+            return data.to(self.device)
 
-# function to train the discriminator network
-def train_discriminator(optimizer, data_real, data_fake):
-    b_size = data_real.size(0)
-    real_label = label_real(b_size)
-    fake_label = label_fake(b_size)
+        # function to create the noise vector
+        def create_noise(sample_size, nz):
+            return torch.randn(sample_size, nz).to(self.device)
 
-    optimizer.zero_grad()
+        # to save the images generated by the generator
+        def save_generator_image(image, path):
+            save_image(image, path)
 
-    output_real = discriminator(data_real)
-    loss_real = criterion(output_real, real_label)
+        # function to train the discriminator network
+        def train_discriminator(optimizer, data_real, data_fake):
+            b_size = data_real.size(0)
+            real_label = label_real(b_size)
+            fake_label = label_fake(b_size)
 
-    output_fake = discriminator(data_fake)
-    loss_fake = criterion(output_fake, fake_label)
+            optimizer.zero_grad()
 
+            output_real = discriminator(data_real)
+            loss_real = criterion(output_real, real_label)
 
-    loss_real.backward()
-    loss_fake.backward()
-    optimizer.step()
+            output_fake = discriminator(data_fake)
+            loss_fake = criterion(output_fake, fake_label)
 
-    return loss_real + loss_fake
+            loss_real.backward()
+            loss_fake.backward()
+            optimizer.step()
 
-# function to train the generator network
-def train_generator(optimizer, data_fake):
-    b_size = data_fake.size(0)
-    real_label = label_real(b_size)
+            return loss_real + loss_fake
 
-    optimizer.zero_grad()
+        # function to train the generator network
+        def train_generator(optimizer, data_fake):
+            b_size = data_fake.size(0)
+            real_label = label_real(b_size)
 
-    output = discriminator(data_fake)
-    loss = criterion(output, real_label)
+            optimizer.zero_grad()
 
-    loss.backward()
-    optimizer.step()
+            output = discriminator(data_fake)
+            loss = criterion(output, real_label)
 
-    return loss    
+            loss.backward()
+            optimizer.step()
 
-# create the noise vector
-noise = create_noise(sample_size, nz)
+            return loss
 
-generator.train()
-discriminator.train()
+        # create the noise vector
+        noise = create_noise(self.sample_size, self.nz)
 
-for epoch in range(epochs):
-    loss_g = 0.0
-    loss_d = 0.0
-    for bi, data in tqdm(enumerate(train_loader), total=int(len(train_data)/train_loader.batch_size)):
-        image, _ = data
-        image = image.to(device)
-        b_size = len(image)
-        # run the discriminator for k number of steps
-        for step in range(k):
-            data_fake = generator(create_noise(b_size, nz)).detach()
-            data_real = image
-            # train the discriminator network
-            loss_d += train_discriminator(optim_d, data_real, data_fake)
-        data_fake = generator(create_noise(b_size, nz))
-        # train the generator network
-        loss_g += train_generator(optim_g, data_fake)
+        generator.train()
+        discriminator.train()
 
-    # create the final fake image for the epoch
-    generated_img = generator(noise).cpu().detach()
-    # make the images as grid
-    generated_img = make_grid(generated_img)
-    # save the generated torch tensor models to disk
-    #save_generator_image(generated_img, f"outputs/gen_img{epoch}.png")   '
-    save_generator_image(generated_img, log_path+format(epoch, '05d')+".png")
-    images.append(generated_img)
-    epoch_loss_g = loss_g / bi # total generator loss for the epoch
-    epoch_loss_d = loss_d / bi # total discriminator loss for the epoch
-    losses_g.append(epoch_loss_g.cpu().detach().numpy())
-    losses_d.append(epoch_loss_d.cpu().detach().numpy())
-    
-    
-    mlflow.log_metric("loss_generator", losses_g[-1].item(), epoch)
-    mlflow.log_metric("loss_discriminator", losses_d[-1].item(), epoch)
-    if epoch % model_save_interval == 0: #each model is 60mb in size
-        torch.save(generator.state_dict(), log_path+"generator"+str(epoch)+".pth")
-        torch.save(discriminator.state_dict(), log_path+"discriminator"+str(epoch)+".pth")
-    
-    print(f"Epoch {epoch} of {epochs}")
-    print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss {epoch_loss_d:.8f}")
+        for epoch in range(self.epochs):
+            loss_g = 0.0
+            loss_d = 0.0
+            for bi, data in tqdm(enumerate(train_loader), total=int(len(train_data) / train_loader.batch_size)):
+                image, _ = data
+                image = image.to(self.device)
+                b_size = len(image)
+                # run the discriminator for k number of steps
+                for step in range(self.k):
+                    data_fake = generator(create_noise(b_size, self.nz)).detach()
+                    data_real = image
+                    # train the discriminator network
+                    loss_d += train_discriminator(optim_d, data_real, data_fake)
+                data_fake = generator(create_noise(b_size, self.nz))
+                # train the generator network
+                loss_g += train_generator(optim_g, data_fake)
 
-print('DONE TRAINING')
-torch.save(generator.state_dict(), log_path+"generator"+str(epochs)+".pth")
-torch.save(discriminator.state_dict(), log_path+"discriminator"+str(epochs)+".pth")
+            # create the final fake image for the epoch
+            generated_img = generator(noise).cpu().detach()
+            # make the images as grid
+            generated_img = make_grid(generated_img)
+            # save the generated torch tensor models to disk
+            # save_generator_image(generated_img, f"outputs/gen_img{epoch}.png")   '
+            save_generator_image(generated_img, log_path + format(epoch, '05d') + ".png")
+            images.append(generated_img)
+            epoch_loss_g = loss_g / bi  # total generator loss for the epoch
+            epoch_loss_d = loss_d / bi  # total discriminator loss for the epoch
+            losses_g.append(epoch_loss_g.cpu().detach().numpy())
+            losses_d.append(epoch_loss_d.cpu().detach().numpy())
 
-# save the generated images as GIF file
-imgs = [np.array(to_pil_image(img)) for img in images]
-#imageio.mimsave('outputs/generator_images.gif', imgs)
-imageio.mimsave(log_path+'generator_images.gif', imgs)
-# plot and save the generator and discriminator loss
-plt.figure()
-plt.plot(losses_g , label='Generator loss')
-plt.plot(losses_d , label='Discriminator Loss')
-plt.legend()
-#plt.savefig('outputs/loss.png')
-plt.savefig(log_path+'loss.png')
+            mlflow.log_metric("loss_generator", losses_g[-1].item(), epoch)
+            mlflow.log_metric("loss_discriminator", losses_d[-1].item(), epoch)
+            if epoch % self.model_save_interval == 0:  # each model is 60mb in size
+                torch.save(generator.state_dict(), log_path + "generator" + str(epoch) + ".pth")
+                torch.save(discriminator.state_dict(), log_path + "discriminator" + str(epoch) + ".pth")
+
+            print(f"Epoch {epoch} of {self.epochs}")
+            print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss {epoch_loss_d:.8f}")
+
+        print('DONE TRAINING')
+        torch.save(generator.state_dict(), log_path + "generator" + str(self.epochs) + ".pth")
+        torch.save(discriminator.state_dict(), log_path + "discriminator" + str(self.epochs) + ".pth")
+
+        # save the generated images as GIF file
+        imgs = [np.array(to_pil_image(img)) for img in images]
+        # imageio.mimsave('outputs/generator_images.gif', imgs)
+        imageio.mimsave(log_path + 'generator_images.gif', imgs)
+        # plot and save the generator and discriminator loss
+        plt.figure()
+        plt.plot(losses_g, label='Generator loss')
+        plt.plot(losses_d, label='Discriminator Loss')
+        plt.legend()
+        # plt.savefig('outputs/loss.png')
+        plt.savefig(log_path + 'loss.png')
+
+if __name__ == "__main__":
+
+    for lr in [0.0002, 0.0004, 0.0008, 0.001, 0.002]:
+        setup = dcgan(lr_generator=lr, lr_discriminator= lr)
+        setup.train()
