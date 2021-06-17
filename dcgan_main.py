@@ -44,6 +44,8 @@ mlflow.log_param("nz", nz)
 mlflow.log_param("k", k)
 mlflow.log_param("device", device)
 mlflow.log_param("model_save_interval", model_save_interval)
+mlflow.log_param("dataset name", ds_name)
+
 print("mlflow logpath:"+log_path)
 
 transform =  transform_factory.transform_factory(ds_name).get_compose()
@@ -165,8 +167,8 @@ for epoch in range(epochs):
     # make the images as grid
     generated_img = make_grid(generated_img)
     # save the generated torch tensor models to disk
-    #save_generator_image(generated_img, f"outputs/gen_img{epoch}.png")
-    save_generator_image(generated_img, log_path+"gen_img"+str(epoch)+".png")
+    #save_generator_image(generated_img, f"outputs/gen_img{epoch}.png")   '
+    save_generator_image(generated_img, log_path+"gen_img{0:05d}.png".format(str(epoch)))
     images.append(generated_img)
     epoch_loss_g = loss_g / bi # total generator loss for the epoch
     epoch_loss_d = loss_d / bi # total discriminator loss for the epoch
@@ -174,8 +176,8 @@ for epoch in range(epochs):
     losses_d.append(epoch_loss_d.cpu().detach().numpy())
     
     
-    mlflow.log_metric("loss_generator", losses_g[-1].item())
-    mlflow.log_metric("loss_discriminator", losses_d[-1].item())  
+    mlflow.log_metric("loss_generator", losses_g[-1].item(), epoch)
+    mlflow.log_metric("loss_discriminator", losses_d[-1].item(), epoch)
     if epoch % model_save_interval == 0: #each model is 60mb in size
         torch.save(generator.state_dict(), log_path+"generator"+str(epoch)+".pth")
         torch.save(discriminator.state_dict(), log_path+"discriminator"+str(epoch)+".pth")
