@@ -25,19 +25,19 @@ from embeddings.transformers.transformerLoader import transformerLoader
 from embeddings.embeddingsLoaderFactory import embeddingsLoaderFactory
 
 # specify dataset name
-ds_name = "mnist"
+ds_name = "coco"
 
 # learning parameters
 batch_size = 32
-epochs = 5
-sample_size = 2 # fixed sample size
+epochs = 2
+sample_size = 64 # fixed sample size
 nz = 32 # latent vector size
 k = 1 # number of steps to apply to the discriminator
 model_save_interval = 50
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # parameter for our approach "Text to Images"
-textToImage = False
+textToImage = True
 embed_dict = None
 embed_dim = None
 embeddings = None
@@ -79,7 +79,9 @@ if ds_name != 'coco':
     print(ds_name)
     train_data = loader(ds_name, transform).getDataset()
 else:
-    train_data = loader(ds_name, transform, textToImage, ['cat'], sample_size, embeddings_type).getDataset()
+    #use cifar10 classes excepting deer and frog
+    categories = ['cat', 'dog', 'bird', 'horse', 'airplane', 'truck', 'boat', 'car']
+    train_data = loader(ds_name, transform, textToImage, categories, sample_size, embeddings_type).getDataset()
     embed_dim = train_data.getEmbeddingDim()
     
     if textToImage:
@@ -237,7 +239,7 @@ for epoch in range(epochs):
     generated_img = make_grid(generated_img)
     
     # save the generated torch tensor models to disk
-    save_generator_image(generated_img, log_path+"gen_img"+str(epoch)+".png")
+    save_generator_image(generated_img, log_path+format(epoch, '05d')+".png")
     images.append(generated_img)
     epoch_loss_g = loss_g / bi # total generator loss for the epoch
     epoch_loss_d = loss_d / bi # total discriminator loss for the epoch
