@@ -19,7 +19,7 @@ matplotlib.style.use('ggplot')
 
 
 class dcgan():
-    def __init(self,
+    def __init__(self,
                ds_name="fmnist",
                lr_generator=0.0002,
                lr_discriminator=0.0002,
