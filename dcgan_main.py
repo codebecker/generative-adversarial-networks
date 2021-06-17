@@ -18,7 +18,7 @@ from transformations.transform_factory import transform_factory
 matplotlib.style.use('ggplot')
 
 
-class dcgan:
+class dcgan():
     def __init(self,
                ds_name="fmnist",
                lr_generator=0.0002,
