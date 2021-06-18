@@ -25,7 +25,8 @@ class cocoDataSet(Dataset):
         self.__getIDsFromCategory()
         if self.__ids:
             self.__imgs, self.__emb_dict = self.__loadImages()
-            self.writeToFile(self.__emb_dict)
+            if self.__t2i:
+                self.writeToFile(self.__emb_dict)
 
     def __getIDsFromCategory(self):
         annFile_categories='{}annotations/instances_{}.json'.format(self.__data_dir, self.__dataset_name)
@@ -65,8 +66,9 @@ class cocoDataSet(Dataset):
             captions = []
             for entries in anns:
                 captions.append((entries['caption']))
-            single_emb_dict = self.__getEmbeddings(captions)
-            emb_dict[idx] = single_emb_dict
+            if self.__t2i:
+                single_emb_dict = self.__getEmbeddings(captions)
+                emb_dict[idx] = single_emb_dict
 
         return imgs, emb_dict
 
@@ -86,15 +88,12 @@ class cocoDataSet(Dataset):
         img = self.__imgs[idx]
         image = io.imread(img['coco_url'])
         image = self.transform(image)
-
-        #get random caption
-        #annIds = self.coco_caps.getAnnIds(imgIds=img['id'])
-        # anns = self.coco_caps.loadAnns(annIds)
-        #label = anns[np.random.choice(5, 1)[0]]['caption']
-
-        #return just the number of the label
-        label = np.random.choice(5, 1)[0]
-        return image, idx, label
+        if self.__t2i:
+            #return just the number of the label
+            label = np.random.choice(5, 1)[0]
+            return image, idx, label
+        else:
+            return image, idx
 
 
     def getEmbeddingDim(self) -> int:

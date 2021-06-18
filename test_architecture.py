@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # -*- coding: utf-8 -*-
 import torch
 import torch.nn as nn
@@ -30,8 +27,8 @@ ds_name = "coco"
 # learning parameters
 batch_size = 32
 epochs = 2
-sample_size = 64 # fixed sample size
-nz = 32 # latent vector size
+sample_size = 32 # fixed sample size
+nz = 16 # latent vector size
 k = 1 # number of steps to apply to the discriminator
 model_save_interval = 50
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -41,6 +38,7 @@ textToImage = True
 embed_dict = None
 embed_dim = None
 embeddings = None
+embeddings_type = None
 
 if textToImage:
     if ds_name != 'coco':
@@ -76,19 +74,18 @@ transform =  transform_factory.transform_factory(ds_name).get_compose()
 to_pil_image = transforms.ToPILImage()
 
 if ds_name != 'coco':
-    print(ds_name)
     train_data = loader(ds_name, transform).getDataset()
 else:
     #use cifar10 classes excepting deer and frog
     categories = ['cat', 'dog', 'bird', 'horse', 'airplane', 'truck', 'boat', 'car']
     train_data = loader(ds_name, transform, textToImage, categories, sample_size, embeddings_type).getDataset()
-    embed_dim = train_data.getEmbeddingDim()
-    
+
     if textToImage:
+        embed_dim = train_data.getEmbeddingDim()
         with open('./embeddings/' + embeddings_dir + 'coco_' + embeddings_type + '_embeddings.pickle', 'rb') as fin:
             embed_dict = pickle.load(fin)
     
-train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last= True) # set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size
 generator = model_factory.generator_factory(ds_name, nz, textToImage, embed_dim).to(device)
 discriminator = model_factory.discriminator_factory(ds_name, textToImage, embed_dim).to(device)
 
@@ -239,7 +236,7 @@ for epoch in range(epochs):
     generated_img = make_grid(generated_img)
     
     # save the generated torch tensor models to disk
-    save_generator_image(generated_img, log_path+format(epoch, '05d')+".png")
+    save_generator_image(generated_img, log_path+"gen_img"+str(epoch)+".png")
     images.append(generated_img)
     epoch_loss_g = loss_g / bi # total generator loss for the epoch
     epoch_loss_d = loss_d / bi # total discriminator loss for the epoch
