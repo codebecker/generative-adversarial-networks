@@ -42,7 +42,7 @@ class Generator(nn.Module):
         self.conv1 = nn.Conv2d(
                 in_channels = self.latent_dim, # input concatenated noice and embeding
                 out_channels=128,
-                kernel_size=5,      #ouput dim Mnist:[(7−5+2*2)/1]+1 =7
+                kernel_size=5,      #ouput dim COCO:[(7−5+2*2)/1]+1 =7
                 stride=1,
                 padding=2,
                 bias=False)
@@ -51,20 +51,57 @@ class Generator(nn.Module):
 # or Transpose Convolutions output dim:(W−1)*S-2P+(K-1)+1 ,W = width of Input, K= Kernel Size(Square) P=Padding, S= Stride
         self.conv2 = nn.ConvTranspose2d(
                 in_channels=128,
-                out_channels=64,
-                kernel_size=4,         #ouput dim Mnist:(7-1)*2-2*1+(4-1)+1=14
-                stride=2,              #ouput dim Cifar:(7-1)*2-2*0+(4-1)+1=16
+                out_channels=108,
+                kernel_size=4,         
+                stride=2,              #ouput dim COCO:(7-1)*2-2*0+(4-1)+1=16
                 padding=0,
                 bias=False)
-        self.bn2d2 = nn.BatchNorm2d(64) if self.batchnorm else None
+        self.bn2d2 = nn.BatchNorm2d(108) if self.batchnorm else None
 
         self.conv3 = nn.ConvTranspose2d(
-                in_channels=64,
-                out_channels=3,     #ouput channel for cifar-> RGB
-                kernel_size=4,     #ouput dim Mnist:(14-1)*2-2*1+(4-1)+1=28
-                stride=2,          #ouput dim Cifar:(16-1)*2-2*1+(4-1)+1=32
+                in_channels=108,
+                out_channels=87,     
+                kernel_size=4,     
+                stride=2,          #ouput dim COCO:(16-1)*2-2*1+(4-1)+1=32
                 padding=1,
                 bias=False)
+        self.bn2d3 = nn.BatchNorm2d(87) if self.batchnorm else None
+        
+        self.conv4 = nn.ConvTranspose2d(
+                in_channels=87,
+                out_channels=66,     
+                kernel_size=4,     #ouput dim COCO:(32-1)*2-2*1+(4-1)+1=64
+                stride=2,          
+                padding=1,
+                bias=False)
+        self.bn2d4 = nn.BatchNorm2d(66) if self.batchnorm else None
+        
+        self.conv5 = nn.ConvTranspose2d(
+                in_channels=66,
+                out_channels=45,    
+                kernel_size=4,     
+                stride=2,          #ouput dim COCO:(64-1)*2-2*1+(4-1)+1=128
+                padding=1,
+                bias=False)
+        self.bn2d5 = nn.BatchNorm2d(45) if self.batchnorm else None
+        
+        self.conv6 = nn.ConvTranspose2d(
+                in_channels=45,
+                out_channels=24,     
+                kernel_size=4,     #
+                stride=2,          #ouput dim COCO:(128-1)*2-2*1+(4-1)+1=256
+                padding=1,
+                bias=False)
+        self.bn2d6 = nn.BatchNorm2d(24) if self.batchnorm else None
+        
+        self.conv7 = nn.ConvTranspose2d(
+                in_channels=24,
+                out_channels=3,     #Output channel RGB
+                kernel_size=2,     
+                stride=2,          #ouput dim COCO:(256-1)*2-2*16+(2-1)+1=480
+                padding=16,
+                bias=False)
+        
         self.tanh = nn.Tanh()
         #self.relu = F.relu()
 
@@ -84,8 +121,12 @@ class Generator(nn.Module):
 
         intermediate = intermediate.view((-1, self.nz_dim, self.factor, self.factor))
 
+        # print(intermediate.shape)
+        # print(projection.shape)
         #concat both inputs
         concat = torch.cat([intermediate, projection], 1)
+        #print(concat.shape)
+        
 
         #pass concated input vector into CNN
         intermediate = self.conv1(concat)
@@ -97,8 +138,29 @@ class Generator(nn.Module):
         if self.batchnorm:
             intermediate = self.bn2d2(intermediate)
         intermediate = self.leaky_relu(intermediate)
-
+        
         intermediate = self.conv3(intermediate)
+        if self.batchnorm:
+            intermediate = self.bn2d3(intermediate)
+        intermediate = self.leaky_relu(intermediate)
+        
+        intermediate = self.conv4(intermediate)
+        if self.batchnorm:
+            intermediate = self.bn2d4(intermediate)
+        intermediate = self.leaky_relu(intermediate)
+        
+        intermediate = self.conv5(intermediate)
+        if self.batchnorm:
+            intermediate = self.bn2d5(intermediate)
+        intermediate = self.leaky_relu(intermediate)
+        
+        intermediate = self.conv6(intermediate)
+        if self.batchnorm:
+            intermediate = self.bn2d6(intermediate)
+        intermediate = self.leaky_relu(intermediate)
+        
+
+        intermediate = self.conv7(intermediate)
         output_tensor = self.tanh(intermediate)
         #output_tensor = F.relu(intermediate)
         return output_tensor
@@ -128,21 +190,54 @@ class Discriminator(nn.Module):
         # Convolutions output dim:[(W−K+2P)/S]+1 W = width of Input, K= Kernel Size(Square) P=Padding, S= Stride
         self.conv1 = nn.Conv2d(
                 in_channels=3,
-                out_channels=64,
-                kernel_size=5,            #ouput dim Mnist:[(28−5+2*2)/2]+1 =14,5 =14
-                stride=2,                 #ouput dim Cifar:[(32−5+2*0)/2]+1 =14,5 =14
-                padding=0,
+                out_channels=24,
+                kernel_size=5,            #
+                stride=2,                 #ouput dim COCO:[(480−5+2*2)/2]+1 =240,5 =240
+                padding=2,
                 bias=True)
         self.leaky_relu = nn.LeakyReLU()
         self.dropout_2d = nn.Dropout2d(0.3)
 
         self.conv2 = nn.Conv2d(
-                in_channels=64,
-                out_channels=128,        
-                kernel_size=5,          #ouput dim Mnist:[(14−5+2*2)/2]+1 = 7,5 =7
-                stride=2,               #ouput dim Cifar:[(14−5+2*2)/2]+1 =7,5 =7
+                in_channels=24,
+                out_channels=45,        
+                kernel_size=5,         
+                stride=2,               #ouput dim COCO:[(240−5+2*2)/2]+1 =120,5 =120
                 padding=2,
                 bias=True)
+        
+        self.conv3 = nn.Conv2d(
+                in_channels=45,
+                out_channels=66,        
+                kernel_size=5,         
+                stride=2,               #ouput dim COCO:[(120−5+2*2)/2]+1 =60,5 = 60
+                padding=2,
+                bias=True)
+        
+        self.conv4 = nn.Conv2d(
+                in_channels=66,
+                out_channels=87,        
+                kernel_size=5,         
+                stride=2,               #ouput dim COCO:[(60−5+2*0)/2]+1 =28,5 =28
+                padding=0,
+                bias=True)
+        
+        self.conv5 = nn.Conv2d(
+                in_channels=87,
+                out_channels=108,        
+                kernel_size=5,         
+                stride=2,               #ouput dim COCO:[(28−5+2*2)/2]+1 =14,5 =14
+                padding=2,
+                bias=True)
+        
+        self.conv6 = nn.Conv2d(
+                in_channels=108,
+                out_channels=128,        
+                kernel_size=5,         
+                stride=2,               #ouput dim COCO:[(14−5+2*2)/2]+1 =7,5 =7
+                padding=2,
+                bias=True)
+        
 
         self.linear1 = nn.Linear(in_features=self.latent_dim, out_features=1024, bias=True)
         self.leaky_relu1 = nn.LeakyReLU()
@@ -172,6 +267,24 @@ class Discriminator(nn.Module):
         intermediate = self.conv2(intermediate)
         intermediate = self.leaky_relu(intermediate)
         intermediate = self.dropout_2d(intermediate)
+        
+        intermediate = self.conv3(intermediate)
+        intermediate = self.leaky_relu(intermediate)
+        intermediate = self.dropout_2d(intermediate)
+        
+        intermediate = self.conv4(intermediate)
+        intermediate = self.leaky_relu(intermediate)
+        intermediate = self.dropout_2d(intermediate)
+        
+        intermediate = self.conv5(intermediate)
+        intermediate = self.leaky_relu(intermediate)
+        intermediate = self.dropout_2d(intermediate)
+        
+        intermediate = self.conv6(intermediate)
+        intermediate = self.leaky_relu(intermediate)
+        intermediate = self.dropout_2d(intermediate)
+        
+        
         intermediate = intermediate.view((-1, 128*self.factor*self.factor))
 
         #step 3 concatenate depthwise with intermediate
@@ -188,3 +301,4 @@ class Discriminator(nn.Module):
         return output_tensor
     
     
+

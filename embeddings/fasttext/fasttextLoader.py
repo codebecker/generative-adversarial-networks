@@ -1,5 +1,6 @@
-import fasttext.util
+
 import fasttext
+import fasttext.util
 from embeddings.embeddingLoaderInterface import embeddingLoaderInterface
 
 class fasttextLoader(embeddingLoaderInterface):

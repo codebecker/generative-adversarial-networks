@@ -14,7 +14,7 @@ class loader():
     def __getDataset(self, type, transformation):
         if type == "fmnist":
             return datasets.FashionMNIST(
-                    root=self.dir+"FMNIST",
+                    root=self.dir,
                     train=self.train,
                     download=self.download,
                     transform=transformation
@@ -22,7 +22,7 @@ class loader():
 
         if type == "mnist":
             return datasets.MNIST(
-                    root=self.dir+"MNIST",
+                    root=self.dir,
                     train=self.train,
                     download=self.download,
                     transform=transformation
