@@ -31,7 +31,7 @@ class test_architectur():
                  nz=16,
                  k=1,
                  embedding_name="distilbert",  # "fasttext" or "distilbert"
-                 text_to_image=True,
+                 text_to_image=False,
                  model_save_interval=50,
                  mlflow_tags=[]
                  ):
@@ -97,7 +97,7 @@ class test_architectur():
         mlflow.log_param("textToImage", self.textToImage)
         mlflow.log_param("device", device)
         mlflow.log_param("model_save_interval", model_save_interval)
-        mlflow.log_param("text_to_image", self.text_to_image)
+        #mlflow.log_param("text_to_image", self.text_to_image)
         mlflow.log_param("embedding", self.embedding_name)
 
         if len(self.mlflow_tags) != 0:
