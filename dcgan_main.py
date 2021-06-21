@@ -20,16 +20,17 @@ matplotlib.style.use('ggplot')
 
 class dcgan():
     def __init__(self,
-               ds_name="fmnist",
-               lr_generator=0.0002,
-               lr_discriminator=0.0002,
-               batch_size=32,
-               epochs=100,
-               sample_size=64,
-               nz=16,
-               k=1,
-               model_save_interval=50
-               ):
+                 ds_name="fmnist",
+                 lr_generator=0.0002,
+                 lr_discriminator=0.0002,
+                 batch_size=32,
+                 epochs=100,
+                 sample_size=64,
+                 nz=16,
+                 k=1,
+                 model_save_interval=50,
+                 mlflow_tags = []
+                 ):
         self.lr_generator = lr_generator
         self.lr_discriminator = lr_discriminator
         self.ds_name = ds_name
@@ -40,7 +41,7 @@ class dcgan():
         self.k = k  # number of steps to apply to the discriminator
         self.model_save_interval = model_save_interval
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+        self.mlflow_tags = mlflow_tags
     def train(self):
         # specify dataset name
         # ds_name = "fmnist"
@@ -72,6 +73,9 @@ class dcgan():
         mlflow.log_param("device", self.device)
         mlflow.log_param("model_save_interval", self.model_save_interval)
         mlflow.log_param("dataset name", self.ds_name)
+
+        if len(self.mlflow_tags)  != 0:
+            mlflow.set_tags(self.mlflow_tags)
 
         print("mlflow logpath:" + log_path)
 
@@ -226,8 +230,30 @@ class dcgan():
         # plt.savefig('outputs/loss.png')
         plt.savefig(log_path + 'loss.png')
 
+
 if __name__ == "__main__":
 
+    ds_name = "fmnist",
+    lr_generator = 0.0002,
+    lr_discriminator = 0.0002,
+    batch_size = 32,
+    epochs = 100,
+    sample_size = 64,
+    nz = 16,
+    k = 1,
+    model_save_interval = 25
+
+    mlflow_tags = {"benchmark": "21_06_2021"}
+
     for lr in [0.0002, 0.0004, 0.0008, 0.001, 0.002]:
-        setup = dcgan(lr_generator=lr, lr_discriminator= lr)
-        setup.train()
+        for batch_size in [32, 64, 128, 256]:
+            for sample_size in [32, 64, 128, 256]:
+                for nz in [32, 64, 128, 256]:
+                    setup = dcgan(lr_generator=lr,
+                                  lr_discriminator=lr,
+                                  batch_size=batch_size,
+                                  sample_size=sample_size,
+                                  nz=nz,
+                                  mlflow_tags = mlflow_tags
+                                  )
+                    setup.train()
