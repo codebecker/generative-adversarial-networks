@@ -48,7 +48,7 @@ class test_architectur():
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.mlflow_tags = mlflow_tags
         self.embedding_name = embedding_name
-        self.text_to_image = text_to_image
+        self.textToImage = text_to_image
 
     def train(self):
         # specify dataset name
