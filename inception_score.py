@@ -109,14 +109,14 @@ if __name__ == '__main__':
 
     cifar = dset.CIFAR10(root='data/', download=True,
                              transform=transforms.Compose([
-                                 transforms.Scale(32),
+                                 transforms.Resize(32),
                                  transforms.ToTensor(),
                                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                              ])
     )
 
-    print(len(cifar))
-    big_splitt, small_splitt = torch.utils.data.random_split(cifar, [49000, 1000])
+    small_set_len = 100
+    big_splitt, small_splitt = torch.utils.data.random_split(cifar, [len(cifar)-small_set_len, small_set_len])
 
     print ("Calculating Inception Score...")
-    print (inception_score(IgnoreLabelDataset(small_splitt), cuda=False, batch_size=500, resize=True, splits=10))
+    print (inception_score(IgnoreLabelDataset(small_splitt), cuda=False, batch_size=50, resize=True, splits=10))
