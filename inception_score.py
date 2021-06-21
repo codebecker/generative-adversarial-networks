@@ -36,7 +36,7 @@ def inception_score(imgs, cuda=False, batch_size=32, resize=True, splits=1):
 
     assert batch_size > 0
     assert N > batch_size
-
+    print(N)
     # Set up dtype
     if cuda:
         dtype = torch.cuda.FloatTensor
@@ -53,8 +53,7 @@ def inception_score(imgs, cuda=False, batch_size=32, resize=True, splits=1):
 
     inception_model.eval();
     up = nn.Upsample(size=(299, 299), mode='bilinear').type(dtype)
-    print("Sleep")
-    time.sleep(34004)
+    print("HERE")
     def get_pred(x):
         if resize:
             x = up(x)
@@ -120,4 +119,4 @@ if __name__ == '__main__':
     big_splitt, small_splitt = torch.utils.data.random_split(cifar, [49000, 1000])
 
     print ("Calculating Inception Score...")
-    print (inception_score(IgnoreLabelDataset(cifar), cuda=False, batch_size=1000, resize=True, splits=10))
+    print (inception_score(IgnoreLabelDataset(small_splitt), cuda=False, batch_size=500, resize=True, splits=10))
