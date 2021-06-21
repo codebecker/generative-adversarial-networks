@@ -5,7 +5,7 @@ import numpy as np
 import skimage.io as io
 from embeddings.embeddingsLoaderFactory import embeddingsLoaderFactory
 import pickle
-
+import random
 
 class cocoDataSet(Dataset):
     def __init__(self, transform, t2i=False, categories=['cat'], size=32, embedding_type = 'distilbert-base-uncased'):
@@ -25,7 +25,8 @@ class cocoDataSet(Dataset):
         self.__getIDsFromCategory()
         if self.__ids:
             self.__imgs, self.__emb_dict = self.__loadImages()
-            self.writeToFile(self.__emb_dict)
+            if self.__t2i:
+                self.writeToFile(self.__emb_dict)
 
     def __getIDsFromCategory(self):
         annFile_categories='{}annotations/instances_{}.json'.format(self.__data_dir, self.__dataset_name)
@@ -33,14 +34,21 @@ class cocoDataSet(Dataset):
 
         self.coco_categories=COCO(annFile_categories)
         self.coco_caps=COCO(annFile_captions)
+        catIds = []
+        imgIds = []
+        for cat in self.__categories:
+            catIds.append(self.coco_categories.getCatIds(catNms=cat))
 
-        catIds = self.coco_categories.getCatIds(catNms=self.__categories)
-        imgIds = self.coco_categories.getImgIds(catIds=catIds)
-        print('# IDs in COCO categorie {}: {}'.format(self.__categories, len(imgIds)))
+        for cat_idx, catId in enumerate(catIds):
+            tmp_Ids = self.coco_categories.getImgIds(catIds=catId)
+            imgIds += tmp_Ids
+            print("Coco Dataset: Append categorie {} with {} entries".format(self.__categories[cat_idx], len(tmp_Ids)))
+        random.shuffle(imgIds)
+
         if self.__ds_size <= len(imgIds):
             self.__ids = imgIds[:self.__ds_size]
         else:
-            print(f'Warning: Defined dataset size is {self.__ds_size}, but there are only {len(imgIds)} Images available')
+            print(f'Warning Coco Dataset: Defined dataset size is {self.__ds_size}, but there are only {len(imgIds)} Images available')
             self.__ids = imgIds
 
     def __loadImages(self):
@@ -58,8 +66,9 @@ class cocoDataSet(Dataset):
             captions = []
             for entries in anns:
                 captions.append((entries['caption']))
-            single_emb_dict = self.__getEmbeddings(captions)
-            emb_dict[idx] = single_emb_dict
+            if self.__t2i:
+                single_emb_dict = self.__getEmbeddings(captions)
+                emb_dict[idx] = single_emb_dict
 
         return imgs, emb_dict
 
@@ -79,15 +88,12 @@ class cocoDataSet(Dataset):
         img = self.__imgs[idx]
         image = io.imread(img['coco_url'])
         image = self.transform(image)
-
-        #get random caption
-        #annIds = self.coco_caps.getAnnIds(imgIds=img['id'])
-        # anns = self.coco_caps.loadAnns(annIds)
-        #label = anns[np.random.choice(5, 1)[0]]['caption']
-
-        #return just the number of the label
-        label = np.random.choice(5, 1)[0]
-        return image, idx, label
+        if self.__t2i:
+            #return just the number of the label
+            label = np.random.choice(5, 1)[0]
+            return image, idx, label
+        else:
+            return image, idx
 
 
     def getEmbeddingDim(self) -> int:
