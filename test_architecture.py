@@ -94,7 +94,7 @@ class test_architectur():
         mlflow.log_param("sample_size", sample_size)
         mlflow.log_param("nz", nz)
         mlflow.log_param("k", k)
-        mlflow.log_param("flag_textToImage", self.textToImage)
+        mlflow.log_param("textToImage", self.textToImage)
         mlflow.log_param("device", device)
         mlflow.log_param("model_save_interval", model_save_interval)
         mlflow.log_param("text_to_image", self.text_to_image)
