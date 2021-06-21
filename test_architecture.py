@@ -305,26 +305,26 @@ class test_architectur():
         # plt.savefig('outputs/loss.png')
         plt.savefig(log_path + 'loss.png')
 
-        if __name__ == "__main__":
+if __name__ == "__main__":
 
-            ds_name = "fmnist",
-            epochs = 100,
-            sample_size = 64,
-            nz = 16,
-            k = 1,
-            model_save_interval = 25
+    ds_name = "fmnist",
+    epochs = 100,
+    sample_size = 64,
+    nz = 16,
+    k = 1,
+    model_save_interval = 25
 
-            mlflow_tags = {"benchmark": "21_06_2021"}
+    mlflow_tags = {"benchmark": "21_06_2021"}
 
-            for text_to_image in [True]:
-                for embedding_name in ["distilbert", "fasttext"]:
-                    for sample_size in [32, 64, 128, 256]:
-                        for nz in [32, 64, 128, 256]:
-                            setup = test_architectur(
-                                sample_size=sample_size,
-                                nz=nz,
-                                embedding_name=embedding_name,
-                                text_to_image=text_to_image,
-                                mlflow_tags=mlflow_tags
-                            )
-                            setup.train()
+    for text_to_image in [True]:
+        for embedding_name in ["distilbert", "fasttext"]:
+            for sample_size in [32, 64, 128, 256]:
+                for nz in [32, 64, 128, 256]:
+                    setup = test_architectur(
+                        sample_size=sample_size,
+                        nz=nz,
+                        embedding_name=embedding_name,
+                        text_to_image=text_to_image,
+                        mlflow_tags=mlflow_tags
+                    )
+                    setup.train()

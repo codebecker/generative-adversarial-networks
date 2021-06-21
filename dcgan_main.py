@@ -230,30 +230,3 @@ class dcgan():
         # plt.savefig('outputs/loss.png')
         plt.savefig(log_path + 'loss.png')
 
-
-if __name__ == "__main__":
-
-    ds_name = "fmnist",
-    lr_generator = 0.0002,
-    lr_discriminator = 0.0002,
-    batch_size = 32,
-    epochs = 100,
-    sample_size = 64,
-    nz = 16,
-    k = 1,
-    model_save_interval = 25
-
-    mlflow_tags = {"benchmark": "21_06_2021"}
-
-    for lr in [0.0002, 0.0004, 0.0008, 0.001, 0.002]:
-        for batch_size in [32, 64, 128, 256]:
-            for sample_size in [32, 64, 128, 256]:
-                for nz in [32, 64, 128, 256]:
-                    setup = dcgan(lr_generator=lr,
-                                  lr_discriminator=lr,
-                                  batch_size=batch_size,
-                                  sample_size=sample_size,
-                                  nz=nz,
-                                  mlflow_tags = mlflow_tags
-                                  )
-                    setup.train()
