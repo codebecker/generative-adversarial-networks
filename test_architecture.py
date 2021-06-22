@@ -26,7 +26,7 @@ class test_architectur():
                  lr_generator=0.0002,
                  lr_discriminator=0.0002,
                  batch_size=32,
-                 epochs=100,
+                 epochs=50,
                  sample_size=64,
                  nz=16,
                  k=1,
