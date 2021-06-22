@@ -81,13 +81,13 @@ class test_architectur():
         log_path = "mlruns/" + str(mlflow_experiment_id) + "/" + str(mlflow_run_id) + "/" + "artifacts" + "/"
         mlflow.log_param("run_id", mlflow_run_id)
         mlflow.log_param("batch_size", self.batch_size)
-        mlflow.log_param("epochs", epochs)
-        mlflow.log_param("sample_size", sample_size)
-        mlflow.log_param("nz", nz)
-        mlflow.log_param("k", k)
+        mlflow.log_param("epochs", self.epochs)
+        mlflow.log_param("sample_size", self.sample_size)
+        mlflow.log_param("nz", self.nz)
+        mlflow.log_param("k", self.k)
         mlflow.log_param("textToImage", self.textToImage)
         mlflow.log_param("device", self.device)
-        mlflow.log_param("model_save_interval", model_save_interval)
+        mlflow.log_param("model_save_interval", self.model_save_interval)
         #mlflow.log_param("text_to_image", self.text_to_image)
         mlflow.log_param("embedding", self.embedding_name)
 
@@ -229,7 +229,7 @@ class test_architectur():
         # generator.train()
         # discriminator.train()
 
-        for epoch in range(epochs):
+        for epoch in range(self.epochs):
             loss_g = 0.0
             loss_d = 0.0
             embed_batch = None
@@ -248,7 +248,7 @@ class test_architectur():
                 b_size = len(image)
 
                 #         run the discriminator for k number of steps
-                for step in range(k):
+                for step in range(self.k):
                     data_fake = generator(create_noise(b_size, nz), embed_batch).detach()
                     data_real = image
                     # train the discriminator network
@@ -297,13 +297,6 @@ class test_architectur():
         plt.savefig(log_path + 'loss.png')
 
 if __name__ == "__main__":
-
-    ds_name = "fmnist",
-    epochs = 100,
-    sample_size = 64,
-    nz = 16,
-    k = 1,
-    model_save_interval = 25
 
     mlflow_tags = {"benchmark": "21_06_2021"}
 
