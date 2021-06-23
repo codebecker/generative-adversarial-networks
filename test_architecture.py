@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import pickle5
+import pickle5 as pickle
 
 import imageio
 import matplotlib
@@ -30,7 +30,7 @@ class test_architectur():
                  sample_size=64,
                  nz=16,
                  k=1,
-                 embedding_name="distilbert",  # "fasttext" or "distilbert"
+                 embedding_name="fasttext",  # "fasttext" or "transformers"
                  text_to_image=False,
                  model_save_interval=50,
                  mlflow_tags=[]
@@ -62,8 +62,8 @@ class test_architectur():
         if self.textToImage:
             if self.ds_name != 'coco':
                 # load dict for mnist and cifar embeddings
-                with open('./embeddings/fasttext/' + self.ds_name + '_embeddings.pickle', 'rb') as fin:
-                    embed_dict = pickle5.load(fin)
+                with open('./embeddings/' + self.embedding_name + "/" + self.ds_name + '_embeddings.pickle', 'rb') as fin:
+                    embed_dict = pickle.load(fin)
                 embed_dim = embed_dict[0].size
             else:
                 if self.embedding_name == "distilbert":
@@ -111,7 +111,7 @@ class test_architectur():
                 embed_dim = train_data.getEmbeddingDim()
                 with open('./embeddings/' + embeddings_dir + 'coco_' + embeddings_type + '_embeddings.pickle',
                           'rb') as fin:
-                    embed_dict = pickle5.load(fin)
+                    embed_dict = pickle.load(fin)
 
         train_loader = DataLoader(train_data, batch_size=self.batch_size, shuffle=True,
                                   drop_last=True)  # set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size
@@ -301,7 +301,7 @@ if __name__ == "__main__":
     mlflow_tags = {"benchmark": "21_06_2021"}
 
     for text_to_image in [True]:
-        for embedding_name in ["distilbert", "fasttext"]:
+        for embedding_name in ["transformers", "fasttext"]:
             for sample_size in [32, 64, 128, 256]:
                 for nz in [32, 64, 128, 256]:
                     setup = test_architectur(
