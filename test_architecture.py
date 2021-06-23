@@ -281,7 +281,7 @@ class test_architectur():
             print(f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss {epoch_loss_d:.8f}")
 
         print('DONE TRAINING')
-        torch.save(generator.state_dict(), log_path + "generator" + str(self.epoch) + ".pth")
+        torch.save(generator.state_dict(), log_path + "generator" + str(self.epochs) + ".pth")
         torch.save(discriminator.state_dict(), log_path + "discriminator" + str(self.epochs) + ".pth")
 
         # save the generated images as GIF file
