@@ -12,3 +12,4 @@ data/coco/images/*
 !data/coco/
 !data/*.tar.gz
 /**embeddings/transformers/**.pickle
+**/mlruns/**
