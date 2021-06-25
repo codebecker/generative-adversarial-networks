@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import pickle5 as pickle
+import pickle as pickle
 
 import imageio
 import matplotlib
@@ -22,18 +22,19 @@ matplotlib.style.use('ggplot')
 
 class test_architectur():
     def __init__(self,
-                 ds_name="fmnist",
+                 ds_name="cifar10",
                  lr_generator=0.0002,
                  lr_discriminator=0.0002,
                  batch_size=32,
-                 epochs=50,
+                 epochs=1,
                  sample_size=64,
                  nz=16,
                  k=1,
                  embedding_name="fasttext",  # "fasttext" or "transformers"
                  text_to_image=False,
                  model_save_interval=50,
-                 mlflow_tags=[]
+                 mlflow_tags=[],
+                 extended = False
                  ):
 
         self.lr_generator = lr_generator
@@ -49,6 +50,7 @@ class test_architectur():
         self.mlflow_tags = mlflow_tags
         self.embedding_name = embedding_name
         self.textToImage = text_to_image
+        self.extended = extended
 
     def train(self):
         # specify dataset name
@@ -62,9 +64,14 @@ class test_architectur():
         if self.textToImage:
             if self.ds_name != 'coco':
                 # load dict for mnist and cifar embeddings
-                with open('./embeddings/' + self.embedding_name + "/" + self.ds_name + '_embeddings.pickle', 'rb') as fin:
-                    embed_dict = pickle.load(fin)
-                embed_dim = embed_dict[0].size
+                if self.ds_name=="cifar10" and self.extended:
+                    with open('./embeddings/' + self.embedding_name + "/" + self.ds_name + '_extended_embeddings.pickle', 'rb') as fin:
+                        embed_dict = pickle.load(fin)
+                    embed_dim = embed_dict[0][0].size
+                else:
+                    with open('./embeddings/' + self.embedding_name + "/" + self.ds_name + '_embeddings.pickle', 'rb') as fin:
+                        embed_dict = pickle.load(fin)
+                    embed_dim = embed_dict[0].size
             else:
                 if self.embedding_name == "distilbert":
                     embeddings_type = 'distilbert-base-uncased'
@@ -88,8 +95,9 @@ class test_architectur():
         mlflow.log_param("textToImage", self.textToImage)
         mlflow.log_param("device", self.device)
         mlflow.log_param("model_save_interval", self.model_save_interval)
-        #mlflow.log_param("text_to_image", self.text_to_image)
         mlflow.log_param("embedding", self.embedding_name)
+        mlflow.log_param("extended_embedding_for_cifar", self.extended)
+
 
         if len(self.mlflow_tags) != 0:
             mlflow.set_tags(self.mlflow_tags)
@@ -187,14 +195,14 @@ class test_architectur():
 
             loss.backward()
             optimizer.step()
-
             return loss
 
-        # map labels to the corresponding labels of CIFAR10, MNIST or FMNIST
-        # TODO expand for COCO sentences
         def get_embeddings(labels, idx=None):
             if self.ds_name != 'coco':
-                embeddings = [embed_dict[int(label.detach())] for label in labels]
+                if self.ds_name == "cifar10" and self.extended:
+                    embeddings = [embed_dict[int(label.detach())][0] for label in labels]
+                else:
+                    embeddings = [embed_dict[int(label.detach())] for label in labels]
             else:
                 embeddings = []
                 i = idx.detach().numpy()
@@ -209,7 +217,13 @@ class test_architectur():
         def create_random_labels(sample_size):
             if self.ds_name != 'coco':
                 random_labels = np.random.choice(10, (sample_size))
-                random_embed = [embed_dict[int(label)] for label in np.nditer(random_labels)]
+                random_embed = []
+                if self.ds_name == "cifar10" and self.extended:
+                    for label in random_labels:
+                        r_id = np.random.choice(2,1)[0]
+                        random_embed.append(embed_dict[int(label)][r_id])
+                else:
+                    random_embed = [embed_dict[int(label)] for label in np.nditer(random_labels)]
                 random_embed = np.array(random_embed).reshape(sample_size, -1)
                 return torch.from_numpy(random_embed).to(self.device)
             else:
@@ -226,9 +240,6 @@ class test_architectur():
             # generate random labels for testing
             embeddings = create_random_labels(sample_size)
 
-        # generator.train()
-        # discriminator.train()
-
         for epoch in range(self.epochs):
             loss_g = 0.0
             loss_d = 0.0
@@ -238,6 +249,7 @@ class test_architectur():
                     if self.ds_name != 'coco':
                         image, labels = data
                         embed_batch = get_embeddings(labels).to(self.device)
+
                     else:
                         image, idx, labels = data
                         embed_batch = get_embeddings(labels, idx).to(self.device)
@@ -286,20 +298,16 @@ class test_architectur():
 
         # save the generated images as GIF file
         imgs = [np.array(to_pil_image(img)) for img in images]
-        # imageio.mimsave('outputs/generator_images.gif', imgs)
         imageio.mimsave(log_path + 'generator_images.gif', imgs)
-        # plot and save the generator and discriminator loss
         plt.figure()
         plt.plot(losses_g, label='Generator loss')
         plt.plot(losses_d, label='Discriminator Loss')
         plt.legend()
-        # plt.savefig('outputs/loss.png')
         plt.savefig(log_path + 'loss.png')
 
 if __name__ == "__main__":
 
-    mlflow_tags = {"benchmark": "21_06_2021"}
-
+    mlflow_tags = {"benchmark": "25_06_2021"}
     for text_to_image in [True]:
         for embedding_name in ["transformers", "fasttext"]:
             for sample_size in [32, 64, 128, 256]:
@@ -309,6 +317,7 @@ if __name__ == "__main__":
                         nz=nz,
                         embedding_name=embedding_name,
                         text_to_image=text_to_image,
-                        mlflow_tags=mlflow_tags
+                        mlflow_tags=mlflow_tags,
+                        extended=True
                     )
                     setup.train()
