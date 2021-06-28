@@ -53,8 +53,6 @@ class test_architectur():
         self.extended = extended
 
     def train(self):
-        # specify dataset name
-
         # parameter for our approach "Text to Images"
         embed_dict = None
         embed_dim = None
@@ -80,6 +78,7 @@ class test_architectur():
                     embeddings_type = 'fasttext'
                     embeddings_dir = 'fasttext/'
 
+        #mlflow setup
         mlflow.set_experiment(self.ds_name)
         mlflow.end_run()
         mlflow.start_run()
@@ -98,10 +97,8 @@ class test_architectur():
         mlflow.log_param("embedding", self.embedding_name)
         mlflow.log_param("extended_embedding_for_cifar", self.extended)
 
-
         if len(self.mlflow_tags) != 0:
             mlflow.set_tags(self.mlflow_tags)
-
         print("mlflow logpath:" + log_path)
 
         transform = transform_factory.transform_factory(self.ds_name).get_compose()
@@ -212,9 +209,8 @@ class test_architectur():
             embeddings = np.array(embeddings)
             return torch.from_numpy(embeddings)
 
-        # generates random labels from range(10).
-        # Used for MNIST, FMNIST and CIRFAR
         def create_random_labels(sample_size):
+            # generates random labels from range(10).
             if self.ds_name != 'coco':
                 random_labels = np.random.choice(10, (sample_size))
                 random_embed = []
