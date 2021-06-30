@@ -1,0 +1,4 @@
+artifact_location: file:///A:/Projects/KI_Lab/generative-adversarial-networks/mlruns/1
+experiment_id: '1'
+lifecycle_stage: active
+name: mnist

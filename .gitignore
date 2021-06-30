@@ -2,4 +2,14 @@
 **/__pycache__/**
 **/input/**
 **/outputs/**
+*.pth
 vanilla_gan.py
+cc.en.300.bin
+**/.vscode/**
+data/*
+data/coco/annotations/*
+data/coco/images/*
+!data/coco/
+!data/*.tar.gz
+/**embeddings/transformers/**.pickle
+**/mlruns/**

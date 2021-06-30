@@ -1,0 +1,12 @@
+fasttext==0.9.2
+numpy==1.20.2
+imageio==2.9.0
+pandas==1.2.4
+pickle5
+pycocotools==2.0.2
+scikit-image==0.18.1
+transformers==4.6.1
+torch==1.7.1+cu101
+torchvision==0.8.2+cu101
+mlflow==1.17.0
+jupyterlab==3.0.11

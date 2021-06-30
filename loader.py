@@ -1,13 +1,15 @@
 import torchvision.datasets as datasets
-from torchvision.datasets import ImageFolder
-import os
+from data.coco.cocoDataSet import cocoDataSet
 
 class loader():
-    def __init__(self, type, transformation) -> None:
+    def __init__(self, type, transformation, *args) -> None:
         self.dir = "./data/"
         self.train = True
         self.download = True
+        if args:
+            self.opts = args
         self.__dataset = self.__getDataset(type, transformation)
+
       
     def __getDataset(self, type, transformation):
         if type == "fmnist":
@@ -39,6 +41,16 @@ class loader():
                     train=self.train,
                     download=self.download,
                     transform=transformation
+                    )
+        if type == "coco":
+            t2i = self.opts[0]
+            categories = self.opts[1]
+            size = self.opts[2]
+            return cocoDataSet(
+                    transform = transformation,
+                    t2i=t2i,
+                    categories=categories,
+                    size=size
                     )
         else:
             print("unknown dataset")

@@ -3,7 +3,6 @@
 ### About
 Implementation of [Generative Adversarial Text-to-Image Synthesis](https://arxiv.org/abs/1605.05396) by Scott Reed, Zeynep Akata, Xinchen Yan, Lajanugen Logeswaran, Bernt Schiele and Honglak Lee
 
-
 #### How to generate samples
 Adjust the configuration in ```main.py```as follows
 - ```ds_name```: valid inputs are 'fmnist', 'mnist', 'coco10', 'coco' 
@@ -13,3 +12,9 @@ Adjust the configuration in ```main.py```as follows
 - ```text_to_image```: use embedding-free vanilla GANS or embadding-based GANS
 - ```extended```: use CIFAR10 with predefined sentence-embeddings
 - as well as epoch, learning_rated, ...
+
+### Use COCO annotations
+* Download the [2017 Train/Val annotations file [241MB]](https://cocodataset.org/#download)
+* Move the following files to folder 'data/coco/annotations':
+  *  captions_val2017.json
+  *  instances_val2017.json
