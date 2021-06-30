@@ -11,7 +11,7 @@ Adjust the configuration in ```main.py```as follows
 - ```nz```: defines the latent feature size of the noice vector
 - ```text_to_image```: use embedding-free vanilla GANS or embadding-based GANS
 - ```extended```: use CIFAR10 with predefined sentence-embeddings
-- as well as epoch, learning_rated, ...
+- as well as epoch, learning rate, ...
 
 ### Use COCO annotations
 * Download the [2017 Train/Val annotations file [241MB]](https://cocodataset.org/#download)
